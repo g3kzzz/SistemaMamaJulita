@@ -25,7 +25,17 @@ public class ObservadorDashboardController {
     }
 
     public void handleLogout() {
-        JOptionPane.showMessageDialog(view, "Cerrando sesión del Observador...");
-        System.exit(0);
+        // Cierra el dashboard actual
+        view.dispose();
+
+        // Forza el cierre de hilos pendientes y crea el login desde cero
+        SwingUtilities.invokeLater(() -> {
+            com.mamajulit.View.Auth.LoginView loginView = new com.mamajulit.View.Auth.LoginView();
+            new com.mamajulit.Controller.Auth.LoginController(loginView); // ⚡ importante: vincular controlador
+            loginView.setLocationRelativeTo(null);
+            loginView.setVisible(true);
+        });
     }
+
+
 }

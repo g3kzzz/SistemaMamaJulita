@@ -1,4 +1,4 @@
-package com.mamajulit.Controller.Modulos;
+package com.mamajulit.Controller.Inicio;
 
 public class InicioAdmin {
 }
