@@ -7,9 +7,11 @@ import java.sql.SQLException;
 public class ConexionBD {
 
     // ====== Configuración de conexión ======
-    private static final String URL = "jdbc:mysql://localhost:3306/MamaJulita?useSSL=false&serverTimezone=UTC";
+    private static final String URL =
+            "jdbc:mysql://localhost:3306/MamaJulita?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASSWORD = "root";
+    private static final String PASSWORD = "GK270523.";
+
 
     private static Connection connection = null;
 

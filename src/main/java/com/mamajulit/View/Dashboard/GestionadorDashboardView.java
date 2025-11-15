@@ -82,7 +82,7 @@ public class GestionadorDashboardView extends JFrame {
         String[] opciones = {
                 "Inicio",
                 "Inventario",
-                "Galpones / Jabas",
+                "Proveedores",
                 "Tickets Pesados",
                 "Órdenes de Recepción",
                 "Reportes",
