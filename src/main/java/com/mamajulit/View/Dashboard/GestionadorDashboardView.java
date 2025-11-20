@@ -27,29 +27,26 @@ public class GestionadorDashboardView extends JFrame {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // === SIDEBAR fondo azul gris oscuro ===
         sidebar = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 GradientPaint gp = new GradientPaint(0, 0,
-                        new Color(29, 41, 57),    // azul gris oscuro
+                        new Color(29, 41, 57),
                         0, getHeight(),
-                        new Color(39, 52, 71));   // azul gris más claro
+                        new Color(39, 52, 71));
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
         sidebar.setPreferredSize(new Dimension(270, getHeight()));
 
-        // === PANEL SUPERIOR DEL SIDEBAR ===
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.setOpaque(false);
         topPanel.setBorder(BorderFactory.createEmptyBorder(30, 20, 20, 20));
 
-        // Logo del sidebar
         ImageIcon logoIcon = new ImageIcon(getClass().getResource("/images/logo.png"));
         JLabel logoLabel;
         if (logoIcon.getIconWidth() > 0) {
@@ -61,7 +58,6 @@ public class GestionadorDashboardView extends JFrame {
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         topPanel.add(logoLabel);
 
-        // Nombre de usuario
         userNameLabel = new JLabel(nombreUsuario, SwingConstants.CENTER);
         userNameLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         userNameLabel.setForeground(Color.WHITE);
@@ -74,7 +70,10 @@ public class GestionadorDashboardView extends JFrame {
         sep.setForeground(new Color(255, 255, 255, 80));
         topPanel.add(sep);
 
-        // === MENÚ ===
+        // ==============================================================
+        //                 MENÚ ACTUALIZADO Y REORDENADO
+        // ==============================================================
+
         JPanel menuPanel = new JPanel(new GridLayout(0, 1, 0, 10));
         menuPanel.setOpaque(false);
         menuPanel.setBorder(BorderFactory.createEmptyBorder(25, 15, 25, 15));
@@ -82,10 +81,12 @@ public class GestionadorDashboardView extends JFrame {
         String[] opciones = {
                 "Inicio",
                 "Inventario",
-                "Proveedores",
-                "Tickets Pesados",
                 "Órdenes de Recepción",
+                "Tickets Pesados",
+                "Proveedores",
+                "Clientes",
                 "Reportes",
+                "Usuarios",
                 "Configuración"
         };
 
@@ -95,14 +96,14 @@ public class GestionadorDashboardView extends JFrame {
             menuPanel.add(boton);
         }
 
-        // === FOOTER ===
+        // FOOTER
         JPanel footer = new JPanel();
         footer.setOpaque(false);
         footer.setLayout(new BoxLayout(footer, BoxLayout.Y_AXIS));
         footer.setBorder(BorderFactory.createEmptyBorder(20, 15, 25, 15));
 
         JButton logoutButton = new JButton("Cerrar sesión");
-        logoutButton.setBackground(new Color(220, 38, 38)); // rojo
+        logoutButton.setBackground(new Color(220, 38, 38));
         logoutButton.setForeground(Color.WHITE);
         logoutButton.setFocusPainted(false);
         logoutButton.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -118,17 +119,15 @@ public class GestionadorDashboardView extends JFrame {
         sidebar.add(menuPanel, BorderLayout.CENTER);
         sidebar.add(footer, BorderLayout.SOUTH);
 
-        // === ÁREA PRINCIPAL ===
+        // AREA DE CONTENIDO
         contentArea = new JPanel(new BorderLayout());
-        contentArea.setBackground(new Color(20, 29, 49)); // fondo azul oscuro/grisazulado
+        contentArea.setBackground(new Color(20, 29, 49));
 
-        // Barra superior del contenido con logo
         JPanel topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(245, 245, 245)); // blanco suave
+        topBar.setBackground(new Color(245, 245, 245));
         topBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)));
         topBar.setPreferredSize(new Dimension(0, 60));
 
-        // Logo pequeño en la barra superior
         JLabel topLogoLabel;
         if (logoIcon.getIconWidth() > 0) {
             Image scaledTopLogo = logoIcon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
@@ -138,13 +137,11 @@ public class GestionadorDashboardView extends JFrame {
         }
         topLogoLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Título de la barra
         JLabel titulo = new JLabel("Panel de Gestión", SwingConstants.LEFT);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titulo.setForeground(new Color(29, 41, 57));
         titulo.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
-        // Botón Mi Perfil
         JButton perfilButton = new JButton("Mi Perfil");
         perfilButton.setFocusPainted(false);
         perfilButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -152,7 +149,6 @@ public class GestionadorDashboardView extends JFrame {
         perfilButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         perfilButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Combinación logo + título a la izquierda
         JPanel leftTopBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 10));
         leftTopBar.setOpaque(false);
         leftTopBar.add(topLogoLabel);
@@ -168,7 +164,6 @@ public class GestionadorDashboardView extends JFrame {
 
         controller = new GestionadorDashboardController(this);
 
-        // Activar primer botón por defecto
         if (!botonesMenu.isEmpty()) {
             setBotonActivo(botonesMenu.get(0));
         }
@@ -176,7 +171,6 @@ public class GestionadorDashboardView extends JFrame {
         setVisible(true);
     }
 
-    // === CREAR BOTONES DEL MENÚ ===
     private JButton crearBotonMenu(String texto) {
         JButton boton = new JButton(texto);
         boton.setFocusPainted(false);
@@ -195,9 +189,8 @@ public class GestionadorDashboardView extends JFrame {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (boton != botonActivo) {
-                    boton.setBackground(new Color(180, 85, 0)); // naranja oscuro hover
+                    boton.setBackground(new Color(180, 85, 0));
                     boton.setOpaque(true);
-                    boton.repaint();
                 }
             }
 
@@ -205,7 +198,6 @@ public class GestionadorDashboardView extends JFrame {
             public void mouseExited(MouseEvent e) {
                 if (boton != botonActivo) {
                     boton.setOpaque(false);
-                    boton.repaint();
                 }
             }
         });
@@ -218,7 +210,6 @@ public class GestionadorDashboardView extends JFrame {
         return boton;
     }
 
-    // === BOTÓN ACTIVO CON BARRA LATERAL NARANJA OSCURA ===
     private void setBotonActivo(JButton nuevoActivo) {
         for (JButton b : botonesMenu) {
             b.setOpaque(false);
@@ -227,18 +218,16 @@ public class GestionadorDashboardView extends JFrame {
                     BorderFactory.createMatteBorder(0,5,0,0, new Color(0,0,0,0)),
                     BorderFactory.createEmptyBorder(10,15,10,10)
             ));
-            b.repaint();
         }
 
         botonActivo = nuevoActivo;
-        botonActivo.setBackground(new Color(200, 100, 0)); // naranja oscuro activo
+        botonActivo.setBackground(new Color(200, 100, 0));
         botonActivo.setOpaque(true);
         botonActivo.setForeground(Color.WHITE);
         botonActivo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0,5,0,0, new Color(200,100,0)),
                 BorderFactory.createEmptyBorder(10,10,10,10)
         ));
-        botonActivo.repaint();
     }
 
     public JPanel getContentArea() { return contentArea; }

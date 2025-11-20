@@ -38,6 +38,9 @@ public class GestionadorDashboardController {
             case "Tickets Pesados":
                 nuevoPanel = new TicketPesadoGestionView();
                 break;
+            case "Órdenes de Recepción":
+                nuevoPanel = new com.mamajulit.View.OrdenRecepcion.OrdenRecepcionGestionView();
+                break;
 
 
             default:
