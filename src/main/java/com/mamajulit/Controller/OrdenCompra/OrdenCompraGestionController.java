@@ -34,11 +34,26 @@ public class OrdenCompraGestionController {
     public boolean actualizarDetalle(OrdenCompraDetalle d) {
         return detalleDAO.actualizar(d);
     }
+    // Dentro de OrdenCompraGestionController
+    public OrdenCompraCabecera buscarCabeceraPorId(String id) {
+        List<OrdenCompraCabecera> lista = cabeceraDAO.buscar(id); // usar el método buscar de DAO
+        if(lista != null && !lista.isEmpty()) {
+            return lista.get(0); // devolvemos el primer resultado
+        }
+        return null;
+    }
+
+    public OrdenCompraDetalle buscarDetallePorId(String id) {
+        List<OrdenCompraDetalle> lista = detalleDAO.buscar(id); // usar método buscar de DAO
+        if(lista != null && !lista.isEmpty()) {
+            return lista.get(0);
+        }
+        return null;
+    }
 
     public boolean eliminarCabecera(String id) {
         return cabeceraDAO.eliminar(id);
     }
-
     public boolean eliminarDetalle(String id) {
         return detalleDAO.eliminar(id);
     }

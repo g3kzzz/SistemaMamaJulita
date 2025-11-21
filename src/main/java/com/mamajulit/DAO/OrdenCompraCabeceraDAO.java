@@ -135,6 +135,20 @@ public class OrdenCompraCabeceraDAO {
         }
         return lista;
     }
+    // Dentro de OrdenCompraCabeceraDAO
+    public List<String> listarIds() {
+        List<String> ids = new ArrayList<>();
+        String sql = "SELECT Id_orden_compra FROM orden_compra_cabecera";
+        try (PreparedStatement ps = conexion.getConnection().prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getString("Id_orden_compra"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ids;
+    }
 
     // BUSCAR
     public List<OrdenCompraCabecera> buscar(String filtro) {

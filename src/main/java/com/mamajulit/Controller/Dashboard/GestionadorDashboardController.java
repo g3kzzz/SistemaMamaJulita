@@ -53,6 +53,9 @@ public class GestionadorDashboardController {
             case "Órdenes de Compra":
                 nuevoPanel = new com.mamajulit.View.OrdenCompra.OrdenCompraGestionView();
                 break;
+            case "Reportes de Compra":
+                nuevoPanel = new com.mamajulit.View.Reportes.ReportesGestionView();
+                break;
             default:
                 nuevoPanel = new JPanel(new BorderLayout());
                 nuevoPanel.setBackground(Color.WHITE);

@@ -87,8 +87,7 @@ public class GestionadorDashboardView extends JFrame {
                 "Guías de Requerimientos",
                 "Órdenes de Compra",
                 "Órdenes de Recepción",
-                "Reportes de Compra",
-                "Configuración"
+                "Reportes de Compra"
         };
 
 

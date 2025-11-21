@@ -1,7 +1,6 @@
 package com.mamajulit.Model;
 
 public class Proveedor {
-
     private String ruc;
     private String nombre;
     private boolean estado;
@@ -9,9 +8,10 @@ public class Proveedor {
     private int idDireccion;
     private String telefono;
 
+    // Constructor vacío
     public Proveedor() {}
 
-    // GETTERS Y SETTERS
+    // Getters y Setters
     public String getRuc() {
         return ruc;
     }
@@ -28,7 +28,7 @@ public class Proveedor {
         this.nombre = nombre;
     }
 
-    public boolean isEstado() {
+    public boolean getEstado() {
         return estado;
     }
 
