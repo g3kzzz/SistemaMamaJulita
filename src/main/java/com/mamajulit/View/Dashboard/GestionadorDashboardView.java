@@ -80,15 +80,17 @@ public class GestionadorDashboardView extends JFrame {
 
         String[] opciones = {
                 "Inicio",
-                "Inventario",
-                "Órdenes de Recepción",
-                "Tickets Pesados",
                 "Proveedores",
-                "Clientes",
-                "Reportes",
-                "Usuarios",
+                "Cotizaciones",
+                "Productos del Proveedor",
+                "Tickets Pesados",
+                "Guías de Requerimientos",
+                "Órdenes de Compra",
+                "Órdenes de Recepción",
+                "Reportes de Compra",
                 "Configuración"
         };
+
 
         for (String texto : opciones) {
             JButton boton = crearBotonMenu(texto);

@@ -42,6 +42,7 @@ public class ValidationUtil {
         }
     }
 
+
     public static boolean isValidTime(String s) {
         if (!isNotEmpty(s)) return false;
         try {
@@ -53,4 +54,5 @@ public class ValidationUtil {
             return false;
         }
     }
+
 }

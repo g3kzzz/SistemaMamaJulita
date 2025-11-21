@@ -41,8 +41,18 @@ public class GestionadorDashboardController {
             case "Órdenes de Recepción":
                 nuevoPanel = new com.mamajulit.View.OrdenRecepcion.OrdenRecepcionGestionView();
                 break;
-
-
+            case "Productos del Proveedor":
+                nuevoPanel = new com.mamajulit.View.ProveedorProducto.ProveedorProductoGestionView();
+                break;
+            case "Cotizaciones":
+                nuevoPanel = new com.mamajulit.View.CotizacionProveedor.CotizacionProveedorGestionView();
+                break;
+            case "Guías de Requerimientos":
+                nuevoPanel = new com.mamajulit.View.GuiaRequerimientos.GuiaRequerimientosGestionView();
+                break;
+            case "Órdenes de Compra":
+                nuevoPanel = new com.mamajulit.View.OrdenCompra.OrdenCompraGestionView();
+                break;
             default:
                 nuevoPanel = new JPanel(new BorderLayout());
                 nuevoPanel.setBackground(Color.WHITE);
