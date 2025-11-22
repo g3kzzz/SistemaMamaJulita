@@ -4,6 +4,8 @@ import com.mamajulit.Controller.TicketPesado.TicketPesadoActualizarController;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import com.mamajulit.Model.ConexionBD;
 
 public class TicketPesadoActualizarDialog extends JDialog {
@@ -80,32 +82,78 @@ public class TicketPesadoActualizarDialog extends JDialog {
             combo.setSelectedItem(seleccionado);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al llenar combo: " + e.getMessage());
         }
     }
 
     private void actualizarTicket() {
-        TicketPesadoActualizarController ctrl = new TicketPesadoActualizarController();
-        boolean ok = ctrl.actualizarTicket(
-                id_ticket,
-                txtFechaSalida.getText(),
-                txtFechaIngreso.getText(),
-                Float.parseFloat(txtMontoTotal.getText()),
-                Float.parseFloat(txtPesoPromedio.getText()),
-                txtGenero.getText(),
-                Integer.parseInt(txtCantidad.getText()),
-                Integer.parseInt(txtMortalidad.getText()),
-                txtDestino.getText(),
-                Float.parseFloat(txtMerma.getText()),
-                cbVehiculo.getSelectedItem().toString(),
-                cbConductor.getSelectedItem().toString(),
-                cbPlantel.getSelectedItem().toString(),
-                "admin"
-        );
-        if (ok) {
-            JOptionPane.showMessageDialog(this, "Ticket actualizado.");
-            parent.cargarTickets();
-            dispose();
+        StringBuilder errores = new StringBuilder();
+        LocalDate fechaSalida = null, fechaIngreso = null;
+        float montoTotal = 0, pesoPromedio = 0, merma = 0;
+        int cantidad = 0, mortalidad = 0;
+
+        // Validaciones de campos vacíos
+        if (txtFechaSalida.getText().isBlank()) errores.append("Fecha de salida es obligatoria.\n");
+        if (txtFechaIngreso.getText().isBlank()) errores.append("Fecha de ingreso es obligatoria.\n");
+        if (txtMontoTotal.getText().isBlank()) errores.append("Monto total es obligatorio.\n");
+        if (txtPesoPromedio.getText().isBlank()) errores.append("Peso promedio es obligatorio.\n");
+        if (txtGenero.getText().isBlank()) errores.append("Genero pollo es obligatorio.\n");
+        if (txtCantidad.getText().isBlank()) errores.append("Cantidad pollo es obligatoria.\n");
+        if (txtMortalidad.getText().isBlank()) errores.append("Mortalidad es obligatoria.\n");
+        if (txtDestino.getText().isBlank()) errores.append("Destino es obligatorio.\n");
+        if (txtMerma.getText().isBlank()) errores.append("Merma es obligatoria.\n");
+
+        // Validaciones de ComboBox
+        if (cbVehiculo.getSelectedItem() == null) errores.append("Vehiculo debe seleccionarse.\n");
+        if (cbConductor.getSelectedItem() == null) errores.append("Conductor debe seleccionarse.\n");
+        if (cbPlantel.getSelectedItem() == null) errores.append("Plantel debe seleccionarse.\n");
+
+        // Validaciones de números
+        try { montoTotal = Float.parseFloat(txtMontoTotal.getText()); } catch(Exception e) { errores.append("Monto total inválido.\n"); }
+        try { pesoPromedio = Float.parseFloat(txtPesoPromedio.getText()); } catch(Exception e) { errores.append("Peso promedio inválido.\n"); }
+        try { cantidad = Integer.parseInt(txtCantidad.getText()); } catch(Exception e) { errores.append("Cantidad inválida.\n"); }
+        try { mortalidad = Integer.parseInt(txtMortalidad.getText()); } catch(Exception e) { errores.append("Mortalidad inválida.\n"); }
+        try { merma = Float.parseFloat(txtMerma.getText()); } catch(Exception e) { errores.append("Merma inválida.\n"); }
+
+        // Validaciones de fechas
+        try { fechaSalida = LocalDate.parse(txtFechaSalida.getText()); } catch(DateTimeParseException e) { errores.append("Fecha salida inválida (YYYY-MM-DD).\n"); }
+        try { fechaIngreso = LocalDate.parse(txtFechaIngreso.getText()); } catch(DateTimeParseException e) { errores.append("Fecha ingreso inválida (YYYY-MM-DD).\n"); }
+
+        LocalDate hoy = LocalDate.now();
+        if (fechaSalida != null && fechaSalida.isAfter(hoy)) errores.append("Fecha de salida no puede ser mayor a hoy.\n");
+        if (fechaIngreso != null && fechaIngreso.isAfter(hoy)) errores.append("Fecha de ingreso no puede ser mayor a hoy.\n");
+        if (fechaSalida != null && fechaIngreso != null && fechaSalida.isBefore(fechaIngreso)) errores.append("Fecha de salida no puede ser menor a fecha de ingreso.\n");
+
+        if (errores.length() > 0) {
+            JOptionPane.showMessageDialog(this, errores.toString(), "Errores de validación", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            TicketPesadoActualizarController ctrl = new TicketPesadoActualizarController();
+            boolean ok = ctrl.actualizarTicket(
+                    id_ticket,
+                    txtFechaSalida.getText(),
+                    txtFechaIngreso.getText(),
+                    montoTotal,
+                    pesoPromedio,
+                    txtGenero.getText(),
+                    cantidad,
+                    mortalidad,
+                    txtDestino.getText(),
+                    merma,
+                    cbVehiculo.getSelectedItem().toString(),
+                    cbConductor.getSelectedItem().toString(),
+                    cbPlantel.getSelectedItem().toString(),
+                    "admin"
+            );
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Ticket actualizado.");
+                parent.cargarTicketsFiltrados();
+                dispose();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar ticket: " + e.getMessage());
         }
     }
 }

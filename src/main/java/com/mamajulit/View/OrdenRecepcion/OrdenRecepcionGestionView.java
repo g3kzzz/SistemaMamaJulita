@@ -8,7 +8,10 @@ import com.mamajulit.Model.ConexionBD;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public class OrdenRecepcionGestionView extends JPanel {
@@ -17,11 +20,15 @@ public class OrdenRecepcionGestionView extends JPanel {
     private DefaultTableModel modelo;
     private OrdenRecepcionGestionController ctrl = new OrdenRecepcionGestionController();
 
+    private JComboBox<Integer> filterEmitidoPor, filterEntregadoPor, filterIdTicket;
+    private JComboBox<String> filterPlaca;
+    private JTextField txtBuscar;
+
     public OrdenRecepcionGestionView() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // top panel botones + busqueda
+        // top panel botones + busqueda + filtros
         JPanel top = new JPanel(new BorderLayout());
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnAgregar = new JButton("Agregar");
@@ -30,13 +37,31 @@ public class OrdenRecepcionGestionView extends JPanel {
         JButton btnRefrescar = new JButton("Refrescar");
         botones.add(btnAgregar); botones.add(btnActualizar); botones.add(btnEliminar); botones.add(btnRefrescar);
 
-        JPanel busquedaPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JTextField txtBuscar = new JTextField(25);
+        JPanel filtrosPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        txtBuscar = new JTextField(15);
         JButton btnBuscar = new JButton("Buscar");
-        busquedaPanel.add(txtBuscar); busquedaPanel.add(btnBuscar);
+
+        // Combos filtros FK
+        filterEmitidoPor = new JComboBox<>();
+        filterEntregadoPor = new JComboBox<>();
+        filterIdTicket = new JComboBox<>();
+        filterPlaca = new JComboBox<>();
+
+        // Cargar combos
+        llenarComboEmpleado(filterEmitidoPor);
+        llenarComboEmpleado(filterEntregadoPor);
+        llenarComboTicket(filterIdTicket);
+        llenarComboVehiculo(filterPlaca);
+
+        filtrosPanel.add(new JLabel("Buscar:")); filtrosPanel.add(txtBuscar);
+        filtrosPanel.add(new JLabel("Emitido:")); filtrosPanel.add(filterEmitidoPor);
+        filtrosPanel.add(new JLabel("Entregado:")); filtrosPanel.add(filterEntregadoPor);
+        filtrosPanel.add(new JLabel("Ticket:")); filtrosPanel.add(filterIdTicket);
+        filtrosPanel.add(new JLabel("Placa:")); filtrosPanel.add(filterPlaca);
+        filtrosPanel.add(btnBuscar);
 
         top.add(botones, BorderLayout.WEST);
-        top.add(busquedaPanel, BorderLayout.EAST);
+        top.add(filtrosPanel, BorderLayout.EAST);
 
         add(top, BorderLayout.NORTH);
 
@@ -59,6 +84,12 @@ public class OrdenRecepcionGestionView extends JPanel {
         btnAgregar.addActionListener(e -> abrirDialogAgregar());
         btnActualizar.addActionListener(e -> abrirDialogActualizar());
         btnEliminar.addActionListener(e -> eliminarTicket());
+
+        // filtro automático al cambiar combo
+        filterEmitidoPor.addActionListener(e -> buscar(txtBuscar.getText().trim()));
+        filterEntregadoPor.addActionListener(e -> buscar(txtBuscar.getText().trim()));
+        filterIdTicket.addActionListener(e -> buscar(txtBuscar.getText().trim()));
+        filterPlaca.addActionListener(e -> buscar(txtBuscar.getText().trim()));
 
         // carga inicial
         cargarTodos();
@@ -90,23 +121,36 @@ public class OrdenRecepcionGestionView extends JPanel {
     protected void buscar(String filtro) {
         modelo.setRowCount(0);
         List<OrdenRecepcion> lista = ctrl.buscar(filtro);
+
+        Integer emitido = (Integer) filterEmitidoPor.getSelectedItem();
+        Integer entregado = (Integer) filterEntregadoPor.getSelectedItem();
+        Integer ticket = (Integer) filterIdTicket.getSelectedItem();
+        String placa = (String) filterPlaca.getSelectedItem();
+
         for (OrdenRecepcion o : lista) {
-            modelo.addRow(new Object[]{
-                    o.getCodigoRecepcion(),
-                    o.getDescripcion(),
-                    o.getLote(),
-                    o.getTipo(),
-                    o.getCantidad(),
-                    o.getHora(),
-                    o.getFecha(),
-                    o.getAlmacen(),
-                    o.getPesoTotal(),
-                    o.getObservaciones(),
-                    o.getEmitidoPor(),
-                    o.getEntregadoPor(),
-                    o.getIdTicket(),
-                    o.getPlacaVehiculo()
-            });
+            // aplicar filtros FK
+            if ((emitido == null || o.getEmitidoPor().equals(emitido)) &&
+                    (entregado == null || o.getEntregadoPor().equals(entregado)) &&
+                    (ticket == null || o.getIdTicket().equals(ticket)) &&
+                    (placa == null || o.getPlacaVehiculo().equals(placa))) {
+
+                modelo.addRow(new Object[]{
+                        o.getCodigoRecepcion(),
+                        o.getDescripcion(),
+                        o.getLote(),
+                        o.getTipo(),
+                        o.getCantidad(),
+                        o.getHora(),
+                        o.getFecha(),
+                        o.getAlmacen(),
+                        o.getPesoTotal(),
+                        o.getObservaciones(),
+                        o.getEmitidoPor(),
+                        o.getEntregadoPor(),
+                        o.getIdTicket(),
+                        o.getPlacaVehiculo()
+                });
+            }
         }
     }
 
@@ -137,7 +181,7 @@ public class OrdenRecepcionGestionView extends JPanel {
         if (conf != JOptionPane.YES_OPTION) return;
 
         OrdenRecepcionEliminarController elimCtrl = new OrdenRecepcionEliminarController();
-        boolean ok = elimCtrl.eliminar(codigo, "admin"); // reemplazar por usuario real si tienes
+        boolean ok = elimCtrl.eliminar(codigo, "admin");
         if (ok) {
             JOptionPane.showMessageDialog(this, "Orden eliminada.");
             cargarTodos();
@@ -146,9 +190,9 @@ public class OrdenRecepcionGestionView extends JPanel {
         }
     }
 
-    // util: cargar datos para combos (empleados,tickets,vehiculos)
     public static void llenarComboEmpleado(JComboBox<Integer> cb) {
         cb.removeAllItems();
+        cb.addItem(null); // opción "todos"
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement("SELECT Id_empleado FROM empleado");
              ResultSet rs = ps.executeQuery()) {
@@ -158,6 +202,7 @@ public class OrdenRecepcionGestionView extends JPanel {
 
     public static void llenarComboTicket(JComboBox<Integer> cb) {
         cb.removeAllItems();
+        cb.addItem(null);
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement("SELECT Id_ticket FROM ticket_pesado");
              ResultSet rs = ps.executeQuery()) {
@@ -167,6 +212,7 @@ public class OrdenRecepcionGestionView extends JPanel {
 
     public static void llenarComboVehiculo(JComboBox<String> cb) {
         cb.removeAllItems();
+        cb.addItem(null);
         try (Connection cn = ConexionBD.getConnection();
              PreparedStatement ps = cn.prepareStatement("SELECT Placa FROM vehiculo");
              ResultSet rs = ps.executeQuery()) {

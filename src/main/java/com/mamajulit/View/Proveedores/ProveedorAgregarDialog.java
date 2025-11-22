@@ -7,7 +7,8 @@ import java.awt.*;
 
 public class ProveedorAgregarDialog extends JDialog {
 
-    private JTextField txtRuc, txtNombre, txtEstado, txtEmail, txtTelefono, txtCalle, txtNumero, txtCiudad;
+    private JTextField txtRuc, txtNombre, txtEmail, txtTelefono, txtCalle, txtNumero, txtCiudad;
+    private JComboBox<String> cmbEstado;
     private final ProveedorGestionView parent;
 
     public ProveedorAgregarDialog(ProveedorGestionView parent) {
@@ -23,7 +24,7 @@ public class ProveedorAgregarDialog extends JDialog {
 
         txtRuc = new JTextField();
         txtNombre = new JTextField();
-        txtEstado = new JTextField();
+        cmbEstado = new JComboBox<>(new String[]{"Activo", "Inactivo"});
         txtEmail = new JTextField();
         txtTelefono = new JTextField();
         txtCalle = new JTextField();
@@ -37,7 +38,7 @@ public class ProveedorAgregarDialog extends JDialog {
         form.add(txtNombre);
 
         form.add(new JLabel("Estado:"));
-        form.add(txtEstado);
+        form.add(cmbEstado);
 
         form.add(new JLabel("Email:"));
         form.add(txtEmail);
@@ -61,24 +62,58 @@ public class ProveedorAgregarDialog extends JDialog {
         add(btnGuardar, BorderLayout.SOUTH);
     }
 
-    private void guardarProveedor() {
-        // Validación
-        if (txtRuc.getText().isEmpty() || txtNombre.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "RUC y Nombre son obligatorios.");
-            return;
+    private boolean validarCampos() {
+        String ruc = txtRuc.getText().trim();
+        String nombre = txtNombre.getText().trim();
+        String email = txtEmail.getText().trim();
+        String telefono = txtTelefono.getText().trim();
+        String calle = txtCalle.getText().trim();
+        String numero = txtNumero.getText().trim();
+        String ciudad = txtCiudad.getText().trim();
+
+        if (ruc.isEmpty() || !ruc.matches("\\d{11}")) {
+            JOptionPane.showMessageDialog(this, "RUC obligatorio y debe tener 11 dígitos.");
+            return false;
         }
 
-        // Llamar al controller
+        if (nombre.isEmpty() || nombre.length() < 3) {
+            JOptionPane.showMessageDialog(this, "Nombre obligatorio y mínimo 3 caracteres.");
+            return false;
+        }
+
+        if (!email.isEmpty() && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            JOptionPane.showMessageDialog(this, "Email inválido.");
+            return false;
+        }
+
+        if (!telefono.isEmpty() && !telefono.matches("\\d{6,15}")) {
+            JOptionPane.showMessageDialog(this, "Teléfono inválido (solo números, mínimo 6 dígitos).");
+            return false;
+        }
+
+        if (calle.isEmpty() || numero.isEmpty() || ciudad.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Calle, Número y Ciudad son obligatorios.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void guardarProveedor() {
+        if (!validarCampos()) return;
+
         ProveedorAgregarController ctrl = new ProveedorAgregarController();
+        String estado = cmbEstado.getSelectedItem().equals("Activo") ? "1" : "0";
+
         boolean ok = ctrl.agregarProveedor(
-                txtRuc.getText(),
-                txtNombre.getText(),
-                txtEstado.getText(),
-                txtEmail.getText(),
-                txtTelefono.getText(),
-                txtCalle.getText(),
-                txtNumero.getText(),
-                txtCiudad.getText()
+                txtRuc.getText().trim(),
+                txtNombre.getText().trim(),
+                estado,
+                txtEmail.getText().trim(),
+                txtTelefono.getText().trim(),
+                txtCalle.getText().trim(),
+                txtNumero.getText().trim(),
+                txtCiudad.getText().trim()
         );
 
         if (ok) {

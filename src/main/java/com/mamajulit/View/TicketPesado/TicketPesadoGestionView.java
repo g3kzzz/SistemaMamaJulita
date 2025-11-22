@@ -1,11 +1,13 @@
 package com.mamajulit.View.TicketPesado;
 
-import com.mamajulit.Controller.TicketPesado.*;
+import com.mamajulit.Controller.TicketPesado.TicketPesadoGestionController;
 import com.mamajulit.Model.ConexionBD;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
@@ -15,12 +17,42 @@ public class TicketPesadoGestionView extends JPanel {
     private JTable tabla;
     private DefaultTableModel modelo;
 
+    // Combos para filtros
+    private JComboBox<String> cbVehiculo, cbConductor, cbPlantel;
+    private JTextField txtBuscar;
+
     public TicketPesadoGestionView() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        // PANEL SUPERIOR (BOTONES)
-        JPanel panelBtns = new JPanel(new FlowLayout());
+        // PANEL SUPERIOR (Filtros + Botones)
+        JPanel panelSuperior = new JPanel(new BorderLayout());
+        panelSuperior.setBackground(Color.WHITE);
+
+        // PANEL FILTROS
+        JPanel panelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        panelFiltros.setBackground(Color.WHITE);
+
+        cbVehiculo = new JComboBox<>();
+        cbConductor = new JComboBox<>();
+        cbPlantel = new JComboBox<>();
+        txtBuscar = new JTextField(15);
+        txtBuscar.setToolTipText("Buscar en todas las columnas...");
+
+        // Llenar combos desde BD
+        llenarComboBox("Vehiculo", "Placa", cbVehiculo, true);
+        llenarComboBox("Conductor", "Nro_Licencia", cbConductor, true);
+        llenarComboBox("Plantel", "Id_plantel", cbPlantel, true);
+
+        panelFiltros.add(new JLabel("Vehiculo:")); panelFiltros.add(cbVehiculo);
+        panelFiltros.add(new JLabel("Conductor:")); panelFiltros.add(cbConductor);
+        panelFiltros.add(new JLabel("Plantel:")); panelFiltros.add(cbPlantel);
+        panelFiltros.add(new JLabel("Buscar:")); panelFiltros.add(txtBuscar);
+
+        panelSuperior.add(panelFiltros, BorderLayout.NORTH);
+
+        // PANEL BOTONES
+        JPanel panelBtns = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelBtns.setBackground(Color.WHITE);
         JButton btnAgregar = new JButton("Agregar");
         JButton btnActualizar = new JButton("Actualizar");
@@ -30,7 +62,9 @@ public class TicketPesadoGestionView extends JPanel {
         panelBtns.add(btnActualizar);
         panelBtns.add(btnEliminar);
         panelBtns.add(btnRefrescar);
-        add(panelBtns, BorderLayout.NORTH);
+        panelSuperior.add(panelBtns, BorderLayout.SOUTH);
+
+        add(panelSuperior, BorderLayout.NORTH);
 
         // TABLA
         modelo = new DefaultTableModel();
@@ -43,26 +77,89 @@ public class TicketPesadoGestionView extends JPanel {
         tabla.setRowHeight(25);
         add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        cargarTickets();
+        // EVENTOS FILTROS
+        cbVehiculo.addActionListener(e -> cargarTicketsFiltrados());
+        cbConductor.addActionListener(e -> cargarTicketsFiltrados());
+        cbPlantel.addActionListener(e -> cargarTicketsFiltrados());
 
-        // EVENTOS
+        txtBuscar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                cargarTicketsFiltrados();
+            }
+        });
+
+        // EVENTOS BOTONES
         btnAgregar.addActionListener(e -> abrirDialogAgregar());
         btnActualizar.addActionListener(e -> abrirDialogActualizar());
         btnEliminar.addActionListener(e -> eliminarTicket());
-        btnRefrescar.addActionListener(e -> cargarTickets());
+        btnRefrescar.addActionListener(e -> {
+            resetFiltros();
+            cargarTicketsFiltrados();
+        });
+
+        // Cargar tabla inicial
+        cargarTicketsFiltrados();
     }
 
-    protected void cargarTickets() {
+    private void llenarComboBox(String tabla, String columna, JComboBox<String> combo, boolean agregarTodos) {
+        try (Connection cn = ConexionBD.getConnection();
+             PreparedStatement ps = cn.prepareStatement("SELECT " + columna + " FROM " + tabla);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (agregarTodos) combo.addItem("Todos");
+            while (rs.next()) {
+                combo.addItem(rs.getString(columna));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void resetFiltros() {
+        cbVehiculo.setSelectedIndex(0);
+        cbConductor.setSelectedIndex(0);
+        cbPlantel.setSelectedIndex(0);
+        txtBuscar.setText("");
+    }
+
+    public void cargarTicketsFiltrados() {
         modelo.setRowCount(0);
         TicketPesadoGestionController ctrl = new TicketPesadoGestionController();
         List<HashMap<String, Object>> lista = ctrl.listarTickets();
+
+        String filtroVehiculo = cbVehiculo.getSelectedItem().toString();
+        String filtroConductor = cbConductor.getSelectedItem().toString();
+        String filtroPlantel = cbPlantel.getSelectedItem().toString();
+        String textoBuscar = txtBuscar.getText().toLowerCase();
+
         for (HashMap<String, Object> t : lista) {
-            modelo.addRow(new Object[]{
-                    t.get("Id_ticket"), t.get("Fecha_salida"), t.get("Fecha_ingreso"),
-                    t.get("Monto_total"), t.get("Peso_promedio"), t.get("Genero_pollo"),
-                    t.get("Cantidad_pollo"), t.get("Mortalidad"), t.get("Destino"),
-                    t.get("Merma"), t.get("Placa_vehiculo"), t.get("Id_conductor"), t.get("Id_plantel")
-            });
+            boolean pasaFiltro = true;
+
+            if (!filtroVehiculo.equals("Todos") && !t.get("Placa_vehiculo").equals(filtroVehiculo)) pasaFiltro = false;
+            if (!filtroConductor.equals("Todos") && !t.get("Id_conductor").equals(filtroConductor)) pasaFiltro = false;
+            if (!filtroPlantel.equals("Todos") && !t.get("Id_plantel").equals(filtroPlantel)) pasaFiltro = false;
+
+            if (!textoBuscar.isEmpty()) {
+                boolean contiene = false;
+                for (String key : t.keySet()) {
+                    if (t.get(key) != null && t.get(key).toString().toLowerCase().contains(textoBuscar)) {
+                        contiene = true;
+                        break;
+                    }
+                }
+                pasaFiltro = pasaFiltro && contiene;
+            }
+
+            if (pasaFiltro) {
+                modelo.addRow(new Object[]{
+                        t.get("Id_ticket"), t.get("Fecha_salida"), t.get("Fecha_ingreso"),
+                        t.get("Monto_total"), t.get("Peso_promedio"), t.get("Genero_pollo"),
+                        t.get("Cantidad_pollo"), t.get("Mortalidad"), t.get("Destino"),
+                        t.get("Merma"), t.get("Placa_vehiculo"), t.get("Id_conductor"), t.get("Id_plantel")
+                });
+            }
         }
     }
 
@@ -108,10 +205,11 @@ public class TicketPesadoGestionView extends JPanel {
                 "¿Eliminar ticket ID: " + id_ticket + "?",
                 "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
-        TicketPesadoEliminarController ctrl = new TicketPesadoEliminarController();
+        com.mamajulit.Controller.TicketPesado.TicketPesadoEliminarController ctrl =
+                new com.mamajulit.Controller.TicketPesado.TicketPesadoEliminarController();
         if (ctrl.eliminarTicket(id_ticket, usuario)) {
             JOptionPane.showMessageDialog(this, "Ticket eliminado.");
-            cargarTickets();
+            cargarTicketsFiltrados();
         }
     }
 }
