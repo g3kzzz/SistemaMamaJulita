@@ -28,6 +28,37 @@ public class OrdenCompraDetalleDAO {
             return false;
         }
     }
+    // Dentro de OrdenCompraDetalleDAO
+    public String obtenerUltimoId() {
+        String ultimoId = null;
+        String sql = "SELECT Id_detalle FROM orden_compra_detalle ORDER BY Id_detalle DESC LIMIT 1";
+        try (PreparedStatement ps = conexion.getConnection().prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ultimoId = rs.getString("Id_detalle");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ultimoId;
+    }
+
+
+    // Dentro de OrdenCompraDetalleDAO
+    public List<String> listarIds() {
+        List<String> ids = new ArrayList<>();
+        String sql = "SELECT Id_detalle FROM orden_compra_detalle";
+        try (PreparedStatement ps = conexion.getConnection().prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getString("Id_detalle"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ids;
+    }
+
 
     public boolean actualizar(OrdenCompraDetalle d) {
         String sql = "{CALL sp_actualizar_orden_compra_detalle(?,?,?,?,?,?,?)}";
@@ -98,4 +129,28 @@ public class OrdenCompraDetalleDAO {
         }
         return lista;
     }
+
+    public OrdenCompraDetalle obtenerPorId(String idDetalle) {
+        OrdenCompraDetalle d = null;
+        String sql = "SELECT * FROM orden_compra_detalle WHERE Id_detalle = ?";
+        try (Connection conn = ConexionBD.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idDetalle);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                d = new OrdenCompraDetalle();
+                d.setIdDetalle(rs.getString("Id_detalle"));
+                d.setIdOrdenCompra(rs.getString("Id_orden_compra"));
+                d.setIdProducto(rs.getInt("Id_producto"));
+                d.setUnidadSolicitada(rs.getString("Unidad_solicitada"));
+                d.setUnidadEntrega(rs.getInt("Unidad_entrega"));
+                d.setValorUnitario(rs.getFloat("Valor_unitario"));
+                d.setImporte(rs.getFloat("Importe"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return d;
+    }
+
 }

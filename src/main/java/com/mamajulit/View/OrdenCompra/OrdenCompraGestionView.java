@@ -6,8 +6,7 @@ import com.mamajulit.Model.OrdenCompraDetalle;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
 import java.util.List;
 
 public class OrdenCompraGestionView extends JPanel {
@@ -18,31 +17,38 @@ public class OrdenCompraGestionView extends JPanel {
     private final OrdenCompraGestionController controller = new OrdenCompraGestionController();
 
     public OrdenCompraGestionView() {
-        setLayout(null);
-        setSize(900, 650);
+        setLayout(new BorderLayout());
 
-        // Tablas
+        // --- PANEL SUPERIOR: BOTONES ---
+        JPanel panelBotones = new JPanel(new GridLayout(2, 3, 10, 10));
+        btnAgregarCabecera = new JButton("Agregar Cabecera");
+        btnActualizarCabecera = new JButton("Actualizar Cabecera");
+        btnEliminarCabecera = new JButton("Eliminar Cabecera");
+        btnAgregarDetalle = new JButton("Agregar Detalle");
+        btnActualizarDetalle = new JButton("Actualizar Detalle");
+        btnEliminarDetalle = new JButton("Eliminar Detalle");
+
+        panelBotones.add(btnAgregarCabecera);
+        panelBotones.add(btnActualizarCabecera);
+        panelBotones.add(btnEliminarCabecera);
+        panelBotones.add(btnAgregarDetalle);
+        panelBotones.add(btnActualizarDetalle);
+        panelBotones.add(btnEliminarDetalle);
+
+        add(panelBotones, BorderLayout.NORTH);
+
+        // --- TABLAS ---
         tablaCabecera = new JTable();
         tablaDetalle = new JTable();
-        JScrollPane scrollCab = new JScrollPane(tablaCabecera);
-        scrollCab.setBounds(20, 20, 850, 200);
-        JScrollPane scrollDet = new JScrollPane(tablaDetalle);
-        scrollDet.setBounds(20, 250, 850, 200);
+        JScrollPane scrollCabecera = new JScrollPane(tablaCabecera);
+        JScrollPane scrollDetalle = new JScrollPane(tablaDetalle);
 
-        // Botones Cabecera
-        btnAgregarCabecera = new JButton("Agregar Cabecera"); btnAgregarCabecera.setBounds(20, 470, 150, 30);
-        btnActualizarCabecera = new JButton("Actualizar Cabecera"); btnActualizarCabecera.setBounds(190, 470, 150, 30);
-        btnEliminarCabecera = new JButton("Eliminar Cabecera"); btnEliminarCabecera.setBounds(360, 470, 150, 30);
+        JPanel panelTablas = new JPanel(new GridLayout(2, 1, 0, 10));
+        panelTablas.add(scrollCabecera);
+        panelTablas.add(scrollDetalle);
+        add(panelTablas, BorderLayout.CENTER);
 
-        // Botones Detalle
-        btnAgregarDetalle = new JButton("Agregar Detalle"); btnAgregarDetalle.setBounds(20, 510, 150, 30);
-        btnActualizarDetalle = new JButton("Actualizar Detalle"); btnActualizarDetalle.setBounds(190, 510, 150, 30);
-        btnEliminarDetalle = new JButton("Eliminar Detalle"); btnEliminarDetalle.setBounds(360, 510, 150, 30);
-
-        add(scrollCab); add(scrollDet);
-        add(btnAgregarCabecera); add(btnActualizarCabecera); add(btnEliminarCabecera);
-        add(btnAgregarDetalle); add(btnActualizarDetalle); add(btnEliminarDetalle);
-
+        // --- CARGAR DATOS ---
         listarCabeceras();
         listarDetalles();
 
@@ -59,9 +65,11 @@ public class OrdenCompraGestionView extends JPanel {
                 String id = tablaCabecera.getValueAt(fila, 0).toString();
                 OrdenCompraCabecera c = controller.buscarCabeceraPorId(id);
                 if(c != null) {
-                    OrdenCompraCabeceraActualizarDialog dialog = new OrdenCompraCabeceraActualizarDialog(c);
+                    OrdenCompraCabeceraActualizarDialog dialog = new OrdenCompraCabeceraActualizarDialog(c.getIdOrdenCompra());
                     dialog.setVisible(true);
                     listarCabeceras();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Cabecera no encontrada");
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Seleccione una cabecera para actualizar");
@@ -94,11 +102,13 @@ public class OrdenCompraGestionView extends JPanel {
             int fila = tablaDetalle.getSelectedRow();
             if(fila >= 0) {
                 String id = tablaDetalle.getValueAt(fila, 0).toString();
-                OrdenCompraDetalle d = controller.buscarDetallePorId(id);
+                OrdenCompraDetalle d = controller.buscarDetallePorId(id); // debe traer todos los campos
                 if(d != null) {
                     OrdenCompraDetalleActualizarDialog dialog = new OrdenCompraDetalleActualizarDialog(d);
                     dialog.setVisible(true);
                     listarDetalles();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Detalle no encontrado");
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Seleccione un detalle para actualizar");
@@ -141,7 +151,10 @@ public class OrdenCompraGestionView extends JPanel {
     private void listarDetalles() {
         List<OrdenCompraDetalle> lista = controller.listarDetalles();
         DefaultTableModel model = new DefaultTableModel();
-        model.setColumnIdentifiers(new Object[]{"ID Detalle", "ID Orden", "Producto", "Unidad", "Valor", "Importe"});
+        model.setColumnIdentifiers(new Object[]{
+                "ID Detalle", "ID Orden", "Producto", "Unidad Solicitada",
+                "Unidad Entrega", "Valor Unitario", "Importe"
+        });
         if(lista != null) {
             for(OrdenCompraDetalle d : lista) {
                 model.addRow(new Object[]{
@@ -149,6 +162,7 @@ public class OrdenCompraGestionView extends JPanel {
                         d.getIdOrdenCompra(),
                         d.getIdProducto(),
                         d.getUnidadSolicitada(),
+                        d.getUnidadEntrega(),
                         d.getValorUnitario(),
                         d.getImporte()
                 });

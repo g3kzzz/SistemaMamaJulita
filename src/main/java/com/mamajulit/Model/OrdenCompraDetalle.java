@@ -43,4 +43,10 @@ public class OrdenCompraDetalle {
 
     public String getIdOrdenCompra() { return idOrdenCompra; }
     public void setIdOrdenCompra(String idOrdenCompra) { this.idOrdenCompra = idOrdenCompra; }
+
+    public void setCantidad(float cantidad) {
+    }
+
+    public void setRucProveedor(String rucProveedor) {
+    }
 }

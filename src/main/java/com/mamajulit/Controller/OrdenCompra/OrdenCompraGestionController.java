@@ -11,6 +11,7 @@ public class OrdenCompraGestionController {
     private final OrdenCompraCabeceraDAO cabeceraDAO = new OrdenCompraCabeceraDAO();
     private final OrdenCompraDetalleDAO detalleDAO = new OrdenCompraDetalleDAO();
 
+    // --- Listados ---
     public List<OrdenCompraCabecera> listarCabeceras() {
         return cabeceraDAO.listar();
     }
@@ -19,6 +20,7 @@ public class OrdenCompraGestionController {
         return detalleDAO.listar();
     }
 
+    // --- Insertar ---
     public boolean insertarCabecera(OrdenCompraCabecera c) {
         return cabeceraDAO.insertar(c);
     }
@@ -27,6 +29,7 @@ public class OrdenCompraGestionController {
         return detalleDAO.insertar(d);
     }
 
+    // --- Actualizar ---
     public boolean actualizarCabecera(OrdenCompraCabecera c) {
         return cabeceraDAO.actualizar(c);
     }
@@ -34,26 +37,21 @@ public class OrdenCompraGestionController {
     public boolean actualizarDetalle(OrdenCompraDetalle d) {
         return detalleDAO.actualizar(d);
     }
-    // Dentro de OrdenCompraGestionController
+
+    // --- Buscar por ID ---
     public OrdenCompraCabecera buscarCabeceraPorId(String id) {
-        List<OrdenCompraCabecera> lista = cabeceraDAO.buscar(id); // usar el método buscar de DAO
-        if(lista != null && !lista.isEmpty()) {
-            return lista.get(0); // devolvemos el primer resultado
-        }
-        return null;
+        return cabeceraDAO.obtenerPorId(id); // <- ahora devuelve un objeto directamente
     }
 
     public OrdenCompraDetalle buscarDetallePorId(String id) {
-        List<OrdenCompraDetalle> lista = detalleDAO.buscar(id); // usar método buscar de DAO
-        if(lista != null && !lista.isEmpty()) {
-            return lista.get(0);
-        }
-        return null;
+        return detalleDAO.obtenerPorId(id); // <- idem, devuelve un objeto
     }
 
+    // --- Eliminar ---
     public boolean eliminarCabecera(String id) {
         return cabeceraDAO.eliminar(id);
     }
+
     public boolean eliminarDetalle(String id) {
         return detalleDAO.eliminar(id);
     }
