@@ -62,7 +62,7 @@ public class ConexionBD {
 
             if (!isServerListening(HOST, PORT)) {
                 System.out.println(YELLOW + "[WARN] MariaDB no responde, arrancando servidor portable..." + RESET);
-                startMariaDB();
+                startMariaDBInBackground(); // arrancamos directamente, sin .bat
                 startedByThisApp = true;
                 Runtime.getRuntime().addShutdownHook(new Thread(ConexionBD::shutdownMariaDB));
             } else {
@@ -135,15 +135,13 @@ public class ConexionBD {
                 System.out.println(GREEN + "[INFO] BD '" + DB_NAME + "' ya existe. Se asume que tablas y procedimientos también existen; no se importa nada." + RESET);
             }
 
-            // Crear/ajustar usuarios siempre, aunque la BD exista
+            // Crear/ajustar usuarios siempre
             createApplicationUsers(rootConn);
 
         } catch (SQLException e) {
             System.err.println(RED + "[ERROR setupDatabase] " + e.getMessage() + RESET);
         }
     }
-
-
 
     // ------------------ IMPORT SQL ------------------
     private static boolean importSqlToDatabase(Connection rootConn, String dbName, String resourcePath, Path fallbackPath) {
@@ -194,7 +192,8 @@ public class ConexionBD {
         return false;
     }
 
-    private static void startMariaDB() throws IOException {
+    // ------------------ MARIADB PORTABLE ------------------
+    private static void startMariaDBInBackground() throws IOException {
         Path mysqldPath = MARIADB_BIN.resolve(MYSQLD_EXE);
         if (!Files.exists(mysqldPath)) mysqldPath = MARIADB_BIN.resolve("mariadbd.exe");
         if (!Files.exists(mysqldPath)) throw new FileNotFoundException("No se encontró mysqld/mariadbd en: " + MARIADB_BIN.toAbsolutePath());
@@ -202,8 +201,8 @@ public class ConexionBD {
         ProcessBuilder pb = new ProcessBuilder(mysqldPath.toAbsolutePath().toString(), "--console");
         pb.directory(MARIADB_BIN.toFile());
         pb.redirectErrorStream(true);
+        pb.redirectOutput(ProcessBuilder.Redirect.PIPE); // salida en pipe, sin ventana
 
-        System.out.println(CYAN + "[INFO] Iniciando MariaDB portable..." + RESET);
         mysqldProcess = pb.start();
 
         Executors.newSingleThreadExecutor().submit(() -> {
@@ -212,6 +211,8 @@ public class ConexionBD {
                 while ((line = r.readLine()) != null) System.out.println("[mariadb] " + line);
             } catch (IOException ignored) {}
         });
+
+        System.out.println(CYAN + "[INFO] MariaDB portable lanzado en segundo plano sin ventana." + RESET);
     }
 
     private static void shutdownMariaDB() {
@@ -278,4 +279,5 @@ public class ConexionBD {
         }
         if (startedByThisApp) shutdownMariaDB();
     }
+
 }
